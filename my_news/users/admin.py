@@ -41,15 +41,6 @@ class CustomUserAdmin(UserAdmin):
         ),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
-    add_fieldsets = (
-        (
-            None,
-            {
-                "classes": ("wide",),
-                "fields": ("username", "password1", "password2"),
-            },
-        ),
-    )
     model = User
     list_display = UserAdmin.list_display + ('role',)
 
