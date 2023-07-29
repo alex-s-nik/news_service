@@ -44,7 +44,7 @@ class News(BaseModel):
     likes = models.ManyToManyField(
         verbose_name='Пользователи, лайкнувшие новость',
         to=User,
-        related_name='all_news',
+        related_name='all_likes',
     )
 
     class Meta:
@@ -59,7 +59,8 @@ class Comment(BaseModel):
     """Модель комментария к новости."""
     news = models.ForeignKey(
         to=News,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='comments'
     )
 
     class Meta:
