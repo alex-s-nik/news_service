@@ -6,7 +6,8 @@ from .views import auth, news
 
 router = SimpleRouter()
 
-router.register('news', news.NewsViewSet)
+router.register('news', news.NewsViewSet, basename='news')
+router.register('news/(?P<news_id>[^/.]+)/comments', news.CommentViewSet, basename='comments')
 
 urlpatterns = [
     path('auth/login/', views.obtain_auth_token, name='login'),

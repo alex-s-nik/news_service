@@ -60,7 +60,8 @@ class Comment(BaseModel):
     news = models.ForeignKey(
         to=News,
         on_delete=models.CASCADE,
-        related_name='comments'
+        related_name='comments',
+        db_constraint=False
     )
 
     class Meta:

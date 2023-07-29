@@ -1,15 +1,33 @@
 from rest_framework import serializers
 
-from news.models import News
+from news.models import Comment, News
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(read_only=True, slug_field='username')
+    class Meta:
+        model = Comment
+        fields = ('id', 'text', 'author', 'created_at')
 
 
 class NewsSerializer(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField()
     author = serializers.SlugRelatedField(read_only=True, slug_field='username')
+    comments = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
 
     def get_likes_count(self, obj):
         return obj.likes.count()
+    
+    def get_comments_count(self, obj):
+        return obj.comments.count()
+    
+    def get_comments(self, obj):
+        return CommentSerializer(
+            obj.comments.all(),
+            many=True
+        ).data
 
     class Meta:
         model = News
-        fields = '__all__'
+        fields = ('id', 'author', 'title', 'text', 'comments_count', 'likes_count', 'comments',)
