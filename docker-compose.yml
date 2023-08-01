@@ -1,0 +1,24 @@
+version: '3.3'
+
+services:
+  db:
+    image: postgres:13.0-alpine
+    env_file:
+      - .env
+    volumes:
+      - ".data:/var/lib/postgresql/data"
+  backend:
+    build:
+      dockerfile: ./my_news/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - db
+  nginx:
+    image: nginx:1.25.1
+    ports:
+      - "80:80"
+    volumes:
+      - "./conf/nginx.conf:/etc/nginx/conf.d/default.conf"
+    depends_on:
+      - backend
