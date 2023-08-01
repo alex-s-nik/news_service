@@ -1,13 +1,19 @@
+import os
+from dotenv import load_dotenv
 from pathlib import Path
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-SECRET_KEY = 'django-insecure-tconm%l2grd=v8^ckft*cjcdt8_kfqo^ibv$(0!3jnt_zi^*+d'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-tconm%l2grd=v8^ckft*cjcdt8_kfqo^ibv$(0!3jnt_zi^*+d')
 
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG_MODE', True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    os.getenv('DJANGO_ALLOWED_HOST', 'localhost')
+]
 
 
 # Application definition
@@ -60,8 +66,8 @@ WSGI_APPLICATION = 'my_news.wsgi.application'
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': os.getenv('DB_NAME', BASE_DIR / 'db.sqlite3'),
     }
 }
 
