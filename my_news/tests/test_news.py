@@ -27,7 +27,7 @@ class TestNews:
             response = client.get(self.url_news)
 
             assert response.status_code == status.HTTP_200_OK
-            assert len(response.json()) == NEWS_COUNT
+            assert response.json()['count'] == NEWS_COUNT
 
     @pytest.mark.django_db()
     def test_get_one_news(self, api_client_factory, unauthorized_client):
@@ -49,7 +49,7 @@ class TestNews:
             assert response.json()['text'] == simple_news.text
             assert response.json()['comments_count'] == 0
             assert response.json()['likes_count'] == 0
-            assert response.json()['comments'] == []
+            assert response.json()['last_comments'] == []
 
     @pytest.mark.django_db()
     def test_create_news(self, api_client_factory, unauthorized_client):
@@ -74,7 +74,7 @@ class TestNews:
         assert response.json()['text'] == simple_news.text
         assert response.json()['comments_count'] == 0
         assert response.json()['likes_count'] == 0
-        assert response.json()['comments'] == []
+        assert response.json()['last_comments'] == []
 
     @pytest.mark.django_db()
     def test_update_news(self):
