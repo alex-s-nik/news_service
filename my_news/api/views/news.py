@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from api.pagination import NewsPagination
 from api.serializers import CommentSerializer, NewsSerializer
 from api.services import news
 from news.exceptions import AlreadyLikedException
@@ -14,6 +15,7 @@ from api.permissions import ReadAnonCreateAuthUpdateAdminOrAuthor
 class NewsViewSet(viewsets.ModelViewSet):
     queryset = News.objects.all()
     serializer_class = NewsSerializer
+    pagination_class = NewsPagination
     permission_classes = (ReadAnonCreateAuthUpdateAdminOrAuthor,)
 
     def perform_create(self, serializer):
