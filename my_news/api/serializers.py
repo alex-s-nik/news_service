@@ -13,7 +13,7 @@ class CommentSerializer(serializers.ModelSerializer):
 class NewsSerializer(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField()
     author = serializers.SlugRelatedField(read_only=True, slug_field='username')
-    comments = serializers.SerializerMethodField()
+    last_comments = serializers.SerializerMethodField()
     comments_count = serializers.SerializerMethodField()
 
     def get_likes_count(self, obj):
@@ -22,12 +22,14 @@ class NewsSerializer(serializers.ModelSerializer):
     def get_comments_count(self, obj):
         return obj.comments.count()
     
-    def get_comments(self, obj):
+    def get_last_comments(self, obj):
+        COMMENTS_COUNT = 10
+
         return CommentSerializer(
-            obj.comments.all(),
+            obj.comments.order_by('-created_at')[:COMMENTS_COUNT],
             many=True
         ).data
 
     class Meta:
         model = News
-        fields = ('id', 'author', 'title', 'text', 'comments_count', 'likes_count', 'comments',)
+        fields = ('id', 'author', 'title', 'text', 'comments_count', 'likes_count', 'last_comments',)
