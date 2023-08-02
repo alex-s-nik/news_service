@@ -13,7 +13,7 @@ from api.permissions import ReadAnonCreateAuthUpdateAdminOrAuthor
 
 
 class NewsViewSet(viewsets.ModelViewSet):
-    queryset = News.objects.all()
+    queryset = News.objects.all().order_by('-created_at')
     serializer_class = NewsSerializer
     pagination_class = NewsPagination
     permission_classes = (ReadAnonCreateAuthUpdateAdminOrAuthor,)
