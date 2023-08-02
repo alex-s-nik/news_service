@@ -1,6 +1,6 @@
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from api.pagination import NewsPagination
@@ -49,6 +49,7 @@ class NewsViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
         news_id = self.kwargs.get('news_id')
