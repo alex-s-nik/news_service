@@ -1,4 +1,6 @@
+import operator
 import pytest
+
 from rest_framework import status
 
 from api.serializers import LAST_COMMENTS_COUNT
@@ -96,8 +98,47 @@ class TestComments:
             assert response.json()['comments_count'] == i + 1
             assert len(response.json()['last_comments']) == min(i + 1, LAST_COMMENTS_COUNT)
 
-    def test_update(self):
-        pass
+    @pytest.mark.parametrize(
+        'type_client, status_code, difference_operator', [
+            ('admin', status.HTTP_200_OK, operator.eq),
+            ('author', status.HTTP_200_OK, operator.eq),
+            ('other_user', status.HTTP_403_FORBIDDEN, operator.ne),
+            ('anonymous', status.HTTP_401_UNAUTHORIZED, operator.ne),
+        ]
+    )
+    @pytest.mark.django_db()
+    def test_update_comment(self, api_client_factory, type_client, status_code, difference_operator):
+        author = UserFactory.create()
+        if type_client == 'admin':
+            user = AdminUserFactory.create()
+        elif type_client == 'author':
+            user = author
+        elif type_client == 'other_user':
+            user = UserFactory.create()
+        elif type_client == 'anonymous':
+            user = None
+        else:
+            raise KeyError('Тестирование такого типа клиента не предусмотрено.')
+        
+        client = api_client_factory(user)
+        
+        simple_news = NewsFactory.create(author=author)
+        simple_comment = CommentsFactory.create(author=author, news=simple_news)
+        test_comment = CommentsFactory.build(news=simple_news)
+
+        data_for_patch = {
+            'text': test_comment.text
+        }
+        for field in data_for_patch:
+            data = {
+                field: data_for_patch[field]
+            }
+
+            response = client.patch(self.url_one_comment % (simple_news.id, simple_comment.id), data=data)
+
+            assert response.status_code == status_code
+            if response.status_code == status.HTTP_200_OK:
+                assert difference_operator(response.json()[field], data_for_patch[field])
 
     @pytest.mark.parametrize(
         'type_client, status_code, count_news_after_response', [
