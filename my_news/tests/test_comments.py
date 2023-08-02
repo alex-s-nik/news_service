@@ -3,7 +3,7 @@ from rest_framework import status
 
 from api.serializers import LAST_COMMENTS_COUNT
 from news.factories import CommentsFactory, NewsFactory
-from news import models
+from news.models import Comment
 from users.factories import AdminUserFactory, UserFactory
 from users.models import User
 
@@ -96,8 +96,37 @@ class TestComments:
             assert response.json()['comments_count'] == i + 1
             assert len(response.json()['last_comments']) == min(i + 1, LAST_COMMENTS_COUNT)
 
-    def test_update():
+    def test_update(self):
         pass
 
-    def test_delete():
-        pass
+    @pytest.mark.parametrize(
+        'type_client, status_code, count_news_after_response', [
+            ('admin', status.HTTP_204_NO_CONTENT, 0),
+            ('author', status.HTTP_204_NO_CONTENT, 0),
+            ('other_user', status.HTTP_403_FORBIDDEN, 1),
+            ('anonymous', status.HTTP_401_UNAUTHORIZED, 1),
+
+        ]
+    )
+    @pytest.mark.django_db()
+    def test_delete_news(self, api_client_factory, type_client, status_code, count_news_after_response):
+        author = UserFactory.create()
+        simple_news = NewsFactory.create(author=author)
+        comment = CommentsFactory.create(author=author, news=simple_news)
+
+        if type_client == 'admin':
+            user = AdminUserFactory.create()
+        elif type_client == 'author':
+            user = author
+        elif type_client == 'other_user':
+            user = UserFactory.create()
+        elif type_client == 'anonymous':
+            user = None
+        else:
+            raise KeyError('Тестирование такого типа клиента не предусмотрено.')
+        
+        client = api_client_factory(user)
+        response = client.delete(self.url_one_comment % (simple_news.id, comment.id))
+
+        assert response.status_code == status_code
+        assert Comment.objects.filter(news=simple_news).count() == count_news_after_response
