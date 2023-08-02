@@ -49,7 +49,7 @@ class NewsViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (ReadAnonCreateAuthUpdateAdminOrAuthor,)
 
     def get_queryset(self):
         news_id = self.kwargs.get('news_id')
