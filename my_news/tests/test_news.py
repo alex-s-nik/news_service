@@ -1,3 +1,4 @@
+import operator
 import pytest
 from rest_framework import status
 
@@ -76,9 +77,47 @@ class TestNews:
         assert response.json()['likes_count'] == 0
         assert response.json()['last_comments'] == []
 
+    @pytest.mark.parametrize(
+        'type_client, status_code, difference_operator', [
+            ('admin', status.HTTP_200_OK, operator.eq),
+            ('author', status.HTTP_200_OK, operator.eq),
+            ('other_user', status.HTTP_403_FORBIDDEN, operator.ne),
+            ('anonymous', status.HTTP_401_UNAUTHORIZED, operator.ne),
+        ]
+    )
     @pytest.mark.django_db()
-    def test_update_news(self):
-        pass
+    def test_update_news(self, api_client_factory, type_client, status_code, difference_operator):
+        author = UserFactory.create()
+        if type_client == 'admin':
+            user = AdminUserFactory.create()
+        elif type_client == 'author':
+            user = author
+        elif type_client == 'other_user':
+            user = UserFactory.create()
+        elif type_client == 'anonymous':
+            user = None
+        else:
+            raise KeyError('Тестирование такого типа клиента не предусмотрено.')
+        
+        client = api_client_factory(user)
+        
+        simple_news = NewsFactory.create(author=author)
+        test_news = NewsFactory.build()
+
+        data_for_patch = {
+            'title': test_news.title,
+            'text': test_news.text
+        }
+        for field in data_for_patch:
+            data = {
+                field: data_for_patch[field]
+            }
+
+            response = client.patch(self.url_one_news % simple_news.id, data=data)
+
+            assert response.status_code == status_code
+            if response.status_code == status.HTTP_200_OK:
+                assert difference_operator(response.json()[field], data_for_patch[field])
 
     @pytest.mark.parametrize(
         'type_client, status_code, count_news_after_response', [
